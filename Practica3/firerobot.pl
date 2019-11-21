@@ -68,7 +68,7 @@ read_sensors:-
 	nothing_to_read,
 	!.
 read_sensors:-
-	open('/Users/ajgs/Desktop/SI/dev/Practica3/tube',read,Fd),
+	open('/Users/ajgs/Desktop/SI/dev/IntelligentSystems/Practica3/tube',read,Fd),
 	read(Fd,SensorList),
 	close(Fd),
 	/* The old sensor readings are forgotten. assert_sensorial_facts will substitute them by the new values */
@@ -105,7 +105,7 @@ take_action(stop):-
 
 take_action(end):-
 	writeln('Enviando [end] al simulador...'),
-	open('/Users/ajgs/Desktop/SI/dev/Practica3/tube',write,Fd),
+	open('/Users/ajgs/Desktop/SI/dev/IntelligentSystems/Practica3/tube',write,Fd),
 	write(Fd,'[end].'),
 	close(Fd),
 	!.
@@ -143,7 +143,7 @@ flush_actions:-
 	ListPending=[_|_],
 	!,
 	annihilate(nothing_to_read,0),
-	open('/Users/ajgs/Desktop/SI/dev/Practica3/tube',write,Fd),
+	open('/Users/ajgs/Desktop/SI/dev/IntelligentSystems/Practica3/tube',write,Fd),
 	write(Fd,ListPending),
 	close(Fd),
 	write('Lista de acciones enviadas: '),

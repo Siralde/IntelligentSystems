@@ -243,7 +243,8 @@ rule fuego_adelante_baldosa_normal:
   [
     1: buscando_fuego_baldosa_normal,
     2: sensor(light,bright),
-    3: sensor(cell,normal)
+    3: sensor(cell,normal),
+    4: notin(checkear_por_fuego)
   ] 
   ==>
   [ 
@@ -263,7 +264,8 @@ rule fuego_defrente_baldosa_normal:
     2: sensor(temp,up),
     3: sensor(light,normal),
     4: sensor(prox,false),
-    5: sensor(cell,normal)
+    5: sensor(cell,normal),
+    6: notin(checkear_por_fuego)
   ] 
   ==>
   [ 
@@ -293,8 +295,39 @@ rule fuego_obstaculo_defrente_baldosa_normal:
   ]
   ==>
   [
-    do([turnR,fwd,turnL,fwd,fwd,turnL,fwd,turnR])
+    do([turnR,fwd,turnL,fwd,fwd,turnL]),
+    insert(checkear_por_fuego)
   ].
+
+rule checkear_fuego_obstaculo_baldosa_normal:
+[
+  1: buscando_fuego_baldosa_normal,
+  2: sensor(light,bright),
+  3: sensor(prox,false),
+  4: sensor(temp,up),
+  5: checkear_por_fuego
+]
+==>
+[
+  do([put-out,turnL,fwd,fwd,turnR,fwd,turnL]),
+  eliminate(5),
+  eliminate(1),
+  insert(buscando_base_baldosa_normal)
+].
+
+rule checkear_no_fuego_obstaculo_baldosa_normal:
+[
+  1: buscando_fuego_baldosa_normal,
+  2: sensor(light,normal),
+  3: sensor(prox,false),
+  4: sensor(temp,up),
+  5: checkear_por_fuego
+]
+==>
+[
+  do([fwd,turnR]),
+  eliminate(5)
+].
 
 
 
@@ -405,5 +438,23 @@ rule obstaculo_buscando_base_baldosa_normal:
     do([turnL,fwd,turnR,fwd,fwd,turnR,fwd,turnL])
   ].
 
-/**************************************************/
 
+/*
+ * Hubo una simulacion en la cual justo acababa de apagar un incendio
+ * y devolviendome a la base salio un nuevo incendio en mi camino
+ * Cuando me estoy devolviendo a la base no apago incendios. Por esta 
+ * razon creo esta regla
+ */
+rule apagar_fuego_buscando_base_baldosa_normal:
+  [
+    1: buscando_base_baldosa_normal,
+    2: sensor(cell,normal),
+    3: sensor(light,bright),
+    4: sensor(prox,false)
+  ]
+  ==>
+  [
+    do([put-out])
+  ].
+
+  /*****************************************************/
