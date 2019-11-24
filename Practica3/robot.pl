@@ -87,7 +87,7 @@ rule fuego_adelante_baldosa_negra:
 
 /*
  * Como el temp marca equal y estamos en la 
- * base nos movemos de ella para buscar guego
+ * base nos movemos de ella para buscar fuego
  */
 rule salir_base_baldosa_negra:
   [
@@ -101,6 +101,11 @@ rule salir_base_baldosa_negra:
   ].
 
 
+/*
+ *
+ * Si no hay fuego cuando sale de la base (temp = equal) se devuelve a la base
+ *
+ */
 rule volver_base_baldosa_negra:
   [
     1: buscando_fuego_baldosa_negra,
@@ -114,9 +119,9 @@ rule volver_base_baldosa_negra:
   ].
 
 /*
- * Si estamos en baldosa negra y 
+ * Si estamos en baldosa negra y hay fuego:
  * la temperatura es equal es que lo tenemos a la izquierda o a la derecha, 
- * giramos a la derecha
+ * Hemos elegido girar a la derecha arbitrariamente
  */
 rule fuego_a_los_lados_baldosa_negra:
   [
@@ -155,6 +160,9 @@ rule fuego_a_los_lados_baldosa_negra:
  * Si estamos en baldosa negra, la temperatura esta up, light es dark y no hay obstaculo
  * es que tenemos el fuego de frente del robot, asi que avanzamos por la linea negra
  * hata que temp sea equal.
+ * 
+ * NOTA IMPORTANTE aqui añadimos como premisa que haya fuego debido a que si no lo hicieramos y solo 
+ * dejaramos la regla siguiente se añadiria este estado cada vez, haciendo que el sistema no funcione
  */
 rule fuego_defrente_baldosa_negra:
   [
@@ -169,6 +177,12 @@ rule fuego_defrente_baldosa_negra:
   [
     do([fwd])
   ].
+
+/*
+ * Si hay fuego frente al robot, sabemos que hay fuego asi que añadimos un estado 
+ * Que quiere decir que ademas de que estamos buscando fuego, hay fuego activo en este momento
+ *
+ */
 rule fuego_defrente_baldosa_negra:
   [
     1: buscando_fuego_baldosa_negra,
@@ -215,6 +229,8 @@ rule fuego_defrente_salir_de_baldosa_negra:
  *    |--|x3|
  *    |x0|x2|
  * 
+ * NOTA: EN EL MUNDO DADO NO EXISTEN OBSTACULOS AL FRENTE DE LAS BALDOSAS NEGRAS POR LO TANTO ESTO NUNCA SE CUMPLE
+ * EN EL CASO DE QUE SE CUMPLIERA ABRIA QUE MEJORAR ESTA REGLA PORQUE PUEDE QUE EL FUEGO ESTE JUSTO DETRAS DEL OBSTACULO
  */
 rule fuego_obstaculo_defrente_baldosa_negra:
   [
@@ -255,7 +271,7 @@ rule fuego_adelante_baldosa_normal:
 
 
 /*
- * Si tenemos el fuego a mas de de frente a nosotros pero no en la celda siguiente
+ * Si tenemos el fuego al de frente del robot pero no en la celda siguiente
  * avanzamos
  */
 rule fuego_defrente_baldosa_normal:
@@ -278,11 +294,11 @@ rule fuego_defrente_baldosa_normal:
  * es que tenemos el fuego al menos a dos casillas al frente y hay un obstaculo al frente
  * Asi que rodeamos al obstaculo de la siguiente manera:
  * 
- * X0, es la posicion inicial y X5 es la posicion final
+ * x1, es la posicion inicial y X5 es la posicion final
  *
- *    |x5|x4|
+ *    |x5|x4| Nos paramos en x4 y comprobamos que hay en x5 con el estado checkear por fuego
  *    |--|x3|
- *    |x0|x2|
+ *    |x1|x2|
  * 
  */
 rule fuego_obstaculo_defrente_baldosa_normal:
@@ -299,6 +315,15 @@ rule fuego_obstaculo_defrente_baldosa_normal:
     insert(checkear_por_fuego)
   ].
 
+/*
+ * 
+ * x1, es la posicion inicial y x5 es la posicion final
+ *
+ *    |x5|x4| Viniendo de la regla anterior si x5 es fuego, el robot lo apaga y se devuelve a x1
+ *    |--|x3|
+ *    |x1|x2|
+ * 
+ */
 rule checkear_fuego_obstaculo_baldosa_normal:
 [
   1: buscando_fuego_baldosa_normal,
@@ -315,6 +340,16 @@ rule checkear_fuego_obstaculo_baldosa_normal:
   insert(buscando_base_baldosa_normal)
 ].
 
+
+/*
+ * 
+ * x1, es la posicion inicial y x5 es la posicion final
+ *
+ *    |x5|x4| Viniendo de la regla fuego_obstaculo_defrente_baldosa_normal 
+ *    |--|x3| Si x5 no es fuego el robot se va a esa posicion
+ *    |x1|x2|
+ * 
+ */
 rule checkear_no_fuego_obstaculo_baldosa_normal:
 [
   1: buscando_fuego_baldosa_normal,
@@ -331,13 +366,14 @@ rule checkear_no_fuego_obstaculo_baldosa_normal:
 
 
 
-/****************************************************/
+/****************FIN BUSCANDO FUEGO BALDOSA NORMAL*********************/
 
 
 /********** BUSCANDO BASE BALDOSA NEGRA ***********/
 
 /*
- * Esto son para volver a la base
+ * Si nos consiguimos una pared nos damos media vuelta y avanzamos tres pasos
+ *
  */
 rule pared_defrente_baldosa_negra:
   [
@@ -350,18 +386,26 @@ rule pared_defrente_baldosa_negra:
     do([turnR,turnR,fwd,fwd,fwd])
   ].
 
-rule avanzar_buscando_base_baldosa_negra:
-  [
-    1: buscando_base_baldosa_negra,
-    2: sensor(cell,black),
-    3: sensor(light,dark),
-    4: sensor(prox,false)
-  ]
-  ==>
-  [
-    do([fwd])
-  ].
 
+/*
+ * si estamos en la baldosa negra y no hay nada al frente avanzamos
+ */
+rule avanzar_buscando_base_baldosa_negra:
+[
+  1: buscando_base_baldosa_negra,
+  2: sensor(cell,black),
+  3: sensor(light,dark),
+  4: sensor(prox,false)
+]
+==>
+[
+  do([fwd])
+].
+
+/*
+ * Si no se cumple ninguna de las anteriores simplemente giramos nuestro eje para cumplir alguna de las anteriores
+ *
+ */
 rule girar_buscando_base_baldosa_negra:
 [
   1: buscando_base_baldosa_negra,
@@ -372,16 +416,21 @@ rule girar_buscando_base_baldosa_negra:
   do([turnR])
 ].
 
+
+/*
+ * Si nos recargamos cambiamos de estado a buscar fuego
+ *
+ */
 rule recarga: 
-  [
-    1: buscando_base_baldosa_negra,
-    2: sensor(cell,base)
-  ]
-  ==>
-  [
-    insert(buscando_fuego_baldosa_negra),
-    eliminate(1)
-  ].
+[
+  1: buscando_base_baldosa_negra,
+  2: sensor(cell,base)
+]
+==>
+[
+  insert(buscando_fuego_baldosa_negra),
+  eliminate(1)
+].
 
 /************************************************/
 
@@ -408,7 +457,7 @@ rule avanzar_buscando_base_baldosa_normal:
 
 /**
  * Si estamos en baldosa normal y al frente hay baldosa negra 
- * avanzamos, cambiamos de baldosa normal a baldosa negra
+ * avanzamos, cambiamos de estado desde: baldosa normal a baldosa negra
  */
 rule avanzar_buscando_base_baldosa_normal:
   [
@@ -426,6 +475,18 @@ rule avanzar_buscando_base_baldosa_normal:
 
 
 
+/*
+ * 
+ * x5, es la posicion inicial y x1 es la posicion final
+ *
+ *    |x5|x4| Vamos de x5 a x2 y alli comprobamos si hay fuego o no 
+ *    |--|x3| 
+ *    |x1|x2|
+ * 
+ * NOTA IMPORTANTE: SI VOLVIENDO A BASE SALE UN FUEGO QUE ESTA JUSTO DETRAS DEL OBSTACULO QUE VAMOS LO APAGAMOS
+ * Si no nos ponemos en x1
+ *
+ */
 rule obstaculo_buscando_base_baldosa_normal:
   [
     1: buscando_base_baldosa_normal,
@@ -435,15 +496,59 @@ rule obstaculo_buscando_base_baldosa_normal:
   ]
   ==>
   [
-    do([turnL,fwd,turnR,fwd,fwd,turnR,fwd,turnL])
+    do([turnL,fwd,turnR,fwd,fwd,turnR]),
+    insert(checkear_fuego)
   ].
 
 
 /*
- * Hubo una simulacion en la cual justo acababa de apagar un incendio
- * y devolviendome a la base salio un nuevo incendio en mi camino
- * Cuando me estoy devolviendo a la base no apago incendios. Por esta 
- * razon creo esta regla
+ * 
+ * x5, es la posicion inicial y x1 es la posicion final
+ *
+ *    |x5|x4| Estando en x2 si en x1 hay fuego los apagamos 
+ *    |--|x3| 
+ *    |x1|x2|
+ *
+ */
+rule obstaculo_fuego_emergencia_buscando_base_baldosa_normal:
+  [
+    1: buscando_base_baldosa_normal,
+    2: sensor(cell,normal),
+    3: sensor(light,bright),
+    4: sensor(prox,false),
+    5: checkear_fuego
+  ]
+  ==>
+  [
+    do([put-out,fwd,turnL]),
+    eliminate(5)
+  ].
+
+/*
+ * 
+ * x5, es la posicion inicial y x1 es la posicion final
+ *
+ *    |x5|x4| Estando en x2 si en x1 no hay fuego, avazamos a esa posicion y giramos a la izquierda
+ *    |--|x3| 
+ *    |x1|x2|
+ *
+ */
+rule obstaculo_no_fuego_emergencia_buscando_base_baldosa_normal:
+  [
+    1: buscando_base_baldosa_normal,
+    2: sensor(cell,normal),
+    3: sensor(light,normal),
+    4: sensor(prox,false),
+    5: checkear_fuego
+  ]
+  ==>
+  [
+    do([fwd,turnL]),
+    eliminate(5)
+  ].
+
+/*
+ * Si devolviendome a la base aparece un fuego lo apago
  */
 rule apagar_fuego_buscando_base_baldosa_normal:
   [

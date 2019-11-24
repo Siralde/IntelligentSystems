@@ -1,150 +1,46 @@
+Explicacion del Algoritmo
+
+Empezamos en un estado llamado "BUSCANDO FUEGO BALDOSA NEGRA" que como su nombre lo indica el robot se dedica a buscar el fuego de la siguiente manera:
+
+Sale de a la celda que tiene en frente la base 	si no hay fuego se devuelve a la base
+												si hay fuego anade un estado llamado hay fuego y lo busca
 
 
- Estado: Empezamos buscando fuego
+(Importante destacar que el robot solo busca el fuego en la linea negra, lo realizamos de esta forma porque nos ahorra el uso de diferentes estados
+lo que haria mas complejo su programacion
 
-//Regla: fuego_delante 
-Si estamos en frente del fuego lo apagamos
-	light(bright)
-	do(put-out), cambiamos a estado buscar base
+	El robot siempre hara los siguientes movimientos mientras busca fuego y no lo haya
 
+	|  |x1|BS|  |  |	
 
+	|  |  |BS|x2|  |  
 
-//Regla: entra_base
-Si no hay nada en la temperatura entonces damos media vuelta y volvemos a la base
-	noequal(temp(up))
-	noequal(temp(down))
-	noequal(temp(equals))
-	cell(dark)
-	do[turnR, turnR, foward]
-//*** FIN Medir arriba y abajo **********//
+	Cuando el robot sale de la base y no hay fuego en up se da media vuelta y si se vuelve a comprobar si esta en up el fuego, cuando la temp esta up cambia anade el estado "hay_fuego"
+)
 
+Busca el fuego recorriendo la franja negra y cuando el sensor de temperatura sea igual a equal quiere decir que estamos en una posicion 
+perpendicular al fuego. En este momento solo giramos el eje del robot hasta que temp sea up.
 
-//regla fuego_a_los_lados
-Si estamos en baldosa negra y la temperatura es equal es que lo tenemos a la izquierda o a la derecha, giramos a la derecha	
-	cell(dark)
-	temp(equals) 
-	do[turnR]
+Como mencionamos anteriormente una vez tengamos el fuego al frente del robot este puede realizar dos acciones dependiendo de los sensores
 
-//regla fuego_detras
-Si estamos en baldosa negra y la temperatura esta down hacemos media vuelta, ya que tenemos el fuego detras nuestro
-	cell(dark)
-	temp(down)
-	do(turnR, turnR)
+1) Si el fuego esta en la celda siguiente lo apaga y cambia al estado "BUSCANDO BASE BALDOSA NEGRA"
+2) Cambia al estado "BUSCANDO FUEGO BALDOSA NORMAL" y va en linea recta hasta la celda anterior al fuego y lo apaga
+	2.1) puede ocurrir que cuando este yendo en direccion al fuego se consiga con un obstaculo por lo que se puede encontrar en la siguientes situaciones
 
-//regla fuego_defrente
-Si estamos en baldosa negra, la temperatura esta up y light no es bright es que tenemos el fuego al menos a dos casillas al frente, asi que avanzamos
-	cell(dark)
-	light(normal)
-	prox(false)
-	temp(up)
-	do(foward) CAMBIAR EN SCRIPT
+	Situacion 1: que el fuego este justo detras del obstaculo
+
+		|x2|x1|		En este caso el robot va desde x1 hasta x4 y en x4 comprueba si la celda que tiene justo al frente hay fuego. 
+		|x3|Ob|		Si es asi lo apago, si no ocurre la situacion dos
+		|x4|Fu|
+
+	Situacion 2: que el fuego no este detras del obstaculo
+
+		|x2|x1|		En este caso el robot va desde x1 hasta x4 y en x4 comprueba si en x5 no hay fuego . 
+		|x3|Ob|		Si no lo hay se pone en x5 y comprueba sigue buscando el fuego en direccion recta hasta conseguirlo y apagarlo
+		|x4|x5|
 
 
-//******* FIN Si estamos en Baldosa Negra ***************//
+Una vez apagado el fuego el robot cambia de estado a "BUSCANDO BASE BALDOSA NORMAL" y simplemente se devuelve a la base por el camino que recorrio para apagar el fuego, es decir, apaga el fuego, se da media vuelta y realiza los mismos pasos que hizo para venir a apagar el fuego, si hubo un obstaculo lo rodea tal y como se explico anteriormente.
+Tambien pasa que en el caso de que se haya creado fuego justamente por donde vino, habra siempre una regla que compruebe si hay un fuego frente de el y asi lo apagara.
 
-
-
-
-
-
-
-Estado: Volve Base
-
-
-/***************** Baldosa Negra *****************/
-
-//regla pared_defrente
-Si estamos en baldosa negra y tenemos una pared en frente damos media vuelta y damos tres pasos
-	cell(dark)
-	prox(true)
-	do(turnR, turnR, forward, forward, forward)
-
-
-
-//regla avanzar_buscando_base_baldosa_negra:
-Si estamos en baldosa negra al frente no hay pared ni obstaculo
-	cell(dark)
-	do(forward)
-
-//regla recarga:
-Si estamos en base cambiamos a estado buscar fuego
-	cell(base)
-	do()
-
-
-
-/***************** Baldosa Negra *****************/
-
-
-
-
-
-
-
-
-
-
-Al principio de todo estamos en el estado buscar fuego.
-
-Estado buscar fuego.
-	Si el sensor de temperatura esta en UP
-	Si el sensor de proximidad = false (No hay obstaculo ni pared)
-
-	=>
-
-	Hacer(FOWARD)
-
-
-Estado buscar fuego.
-	Si el sensor de temperatura esta en DOWN
-
-	=>
-
-	Hacer(TURNLEFT, TURNLEF)
-
-
-Estado buscar fuego.
-	Si el sensor de temperatura esta en EQUAL
-
-	=>
-
-	Hacer(TURNRIGTH)
-.
-
-Estado volver base.
-	Si no estamos en baldosa.
-	Si  ligth no es brigth (si al frente no hay incendio)
-	Si proximidad es falso (si al frente no hay pared ni obstaculo)
-
-	=>
-
-	Hacer(Forward)
-.
-
-Estado volver base.
-	Si proximidad es true
-	Si light es dark (hay una pared)
-	Si cel no es black
-	Si cel no es base
-
- 	=> 
- 	Hacer(TURN RIGHT)
-.
-
-
-Estado volver base.
-	Si proximidad es true
-	Si light es dark (hay una pared)
-	Si cel no es black
-	Si cel no es base
-
- 	=> 
- 	Hacer(TURN RIGHT, TURN RIGHT, FORWARD)
-
-
- Estado volver base.
-	Si cel es base
-
- 	=> 
- 	Cambiar al estado buscar fuego
 
