@@ -85,6 +85,26 @@ rule fuego_adelante_baldosa_negra:
     insert(buscando_base_baldosa_negra)
   ].
 
+
+/*
+ * Si estamos en baldosa negra y hay fuego:
+ * la temperatura es equal es que lo tenemos a la izquierda o a la derecha, 
+ * Hemos elegido girar a la derecha arbitrariamente
+ */
+rule fuego_a_los_lados_baldosa_negra:
+  [
+    1: buscando_fuego_baldosa_negra,
+    2: sensor(cell,black),
+    3: sensor(temp,equal),
+    4: sensor(light,dark),
+    5: hay_fuego
+  ]
+  ==>
+  [
+    do([turnR]),
+    eliminate(5)
+  ].
+
 /*
  * Como el temp marca equal y estamos en la 
  * base nos movemos de ella para buscar fuego
@@ -118,24 +138,6 @@ rule volver_base_baldosa_negra:
     do([turnR,turnR,fwd])
   ].
 
-/*
- * Si estamos en baldosa negra y hay fuego:
- * la temperatura es equal es que lo tenemos a la izquierda o a la derecha, 
- * Hemos elegido girar a la derecha arbitrariamente
- */
-rule fuego_a_los_lados_baldosa_negra:
-  [
-    1: buscando_fuego_baldosa_negra,
-    2: sensor(cell,black),
-    3: sensor(temp,equal),
-    4: sensor(light,dark),
-    5: hay_fuego
-  ]
-  ==>
-  [
-    do([turnR]),
-    eliminate(5)
-  ].
 
 
 /*
@@ -230,7 +232,7 @@ rule fuego_defrente_salir_de_baldosa_negra:
  *    |x0|x2|
  * 
  * NOTA: EN EL MUNDO DADO NO EXISTEN OBSTACULOS AL FRENTE DE LAS BALDOSAS NEGRAS POR LO TANTO ESTO NUNCA SE CUMPLE
- * EN EL CASO DE QUE SE CUMPLIERA HABRIA QUE MEJORAR ESTA REGLA PORQUE PUEDE QUE EL FUEGO ESTE JUSTO DETRAS DEL OBSTACULO
+ * EN EL CASO DE QUE SE CUMPLIERA ABRIA QUE MEJORAR ESTA REGLA PORQUE PUEDE QUE EL FUEGO ESTE JUSTO DETRAS DEL OBSTACULO
  */
 rule fuego_obstaculo_defrente_baldosa_negra:
   [
@@ -448,8 +450,7 @@ rule avanzar_buscando_base_baldosa_normal:
     1: buscando_base_baldosa_normal,
     2: sensor(cell,normal),
     3: sensor(light,normal),
-    4: sensor(prox,false),
-    5: notin(checkear_fuego)
+    4: sensor(prox,false)
   ]
   ==>
   [
@@ -465,8 +466,7 @@ rule avanzar_buscando_base_baldosa_normal:
     1: buscando_base_baldosa_normal,
     2: sensor(cell,normal),
     3: sensor(light,dark),
-    4: sensor(prox,false),
-    5: notin(checkear_fuego)
+    4: sensor(prox,false)
   ]
   ==>
   [
@@ -515,14 +515,15 @@ rule obstaculo_buscando_base_baldosa_normal:
 rule obstaculo_fuego_emergencia_buscando_base_baldosa_normal:
   [
     1: buscando_base_baldosa_normal,
-    2: sensor(light,bright),
-    3: sensor(prox,false),
-    4: checkear_fuego
+    2: sensor(cell,normal),
+    3: sensor(light,bright),
+    4: sensor(prox,false),
+    5: checkear_fuego
   ]
   ==>
   [
     do([put-out,fwd,turnL]),
-    eliminate(4)
+    eliminate(5)
   ].
 
 /*
@@ -537,14 +538,15 @@ rule obstaculo_fuego_emergencia_buscando_base_baldosa_normal:
 rule obstaculo_no_fuego_emergencia_buscando_base_baldosa_normal:
   [
     1: buscando_base_baldosa_normal,
-    2: sensor(light,normal),
-    3: sensor(prox,false),
-    4: checkear_fuego
+    2: sensor(cell,normal),
+    3: sensor(light,normal),
+    4: sensor(prox,false),
+    5: checkear_fuego
   ]
   ==>
   [
     do([fwd,turnL]),
-    eliminate(4)
+    eliminate(5)
   ].
 
 /*
